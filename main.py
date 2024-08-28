@@ -24,7 +24,7 @@ async def check_avail():
     available, avail = check_dcu_status()
     global available_dcu
     available_dcu = avail
-    os.environ["HIP_VISIBLE_DEVICES"] = f"{avail}"
+    os.environ["CUDA_VISIBLE_DEVICES"] = f"{avail}"
     return {"available": available}
 
 @app.post("/generate", status_code=status.HTTP_200_OK, response_model=IdResponse)

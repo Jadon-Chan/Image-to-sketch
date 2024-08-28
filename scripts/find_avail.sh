@@ -1,13 +1,13 @@
 #!/bin/env bash
 
-vrams=$(hy-smi | head -n 12 | tail -n 8 | awk '{print $6}')
+vrams=$(nvidia-smi --query-gpu=utilization.memory --format=csv | awk '{print $1}' | tail -n 8)
 
 num=0
 i=0
 avail=-1
 
 for vram in $vrams; do
-	if [[ "$vram" == "0%" ]]; then
+	if [[ "$vram" == "0" ]]; then
 		((num++))
 		if [[ avail -eq -1 ]]; then
 			avail=$i
