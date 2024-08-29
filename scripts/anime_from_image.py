@@ -8,10 +8,16 @@ from diffusers import (
 from diffusers.utils import load_image
 import os
 import argparse
+import numpy as np
 from PIL import Image
+import sys
+sys.path.append("scripts")
+from preprocess import preprocess
+from postprocess import postprocess
 
 def parse_args():
     home = os.environ.get("HOME", "")
+    home = os.path.join(home, "autodl-tmp")
 
     parser = argparse.ArgumentParser(description="Image-to-Image processing script with adjustable parameters.")
 
@@ -22,7 +28,7 @@ def parse_args():
     parser.add_argument('--lora_name', type=str, default="sketch-style-xl.safetensors", help='Name of the LoRA model file')
     parser.add_argument('--results_path', type=str, default=f"{home}/Image-to-sketch/results", help='Path to save the results')
     parser.add_argument('--init_image_path', type=str, default=f"{home}/Image-to-sketch/inits", help='Path to the initial image directory')
-    parser.add_argument('--init_image_name', type=str, default="river_town.jpg", help='Name of the initial image file')
+    parser.add_argument('--init_image_name', type=str, default="girl.jpg", help='Name of the initial image file')
     parser.add_argument('--strength', type=float, default=0.55, help='Strength parameter for image processing')
 
     return parser.parse_args()
@@ -58,10 +64,10 @@ if __name__ == "__main__":
     # negative_prompt = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry"
 
     init_image = load_image(f"{args.init_image_path}/{args.init_image_name}")
-    init_image = init_image.transpose(Image.Transpose.ROTATE_180)
+    init_image = preprocess(init_image)
  
     prompt = "masterpiece, best quality, sketch, monochrome, greyscale"
-    negative_prompt = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry"
+    negative_prompt = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, colorful"
 
     image = pipe(
         prompt, 
@@ -74,8 +80,6 @@ if __name__ == "__main__":
         strength=args.strength
     ).images[0]
 
-    width, height = 400, 300
-    image = image.resize(size=(width, height), resample=Image.Resampling.LANCZOS, reducing_gap=3.0)
-    image = image.convert("L")
+    postprocess(image, args.results_path, args.init_image_name)
     
-    image.save(f"{args.results_path}/{os.path.splitext(args.init_image_name)[0]}.png")
+    # image.save(f"{args.results_path}/{os.path.splitext(args.init_image_name)[0]}.png")
